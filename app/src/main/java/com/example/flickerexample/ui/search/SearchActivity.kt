@@ -1,9 +1,7 @@
 package com.example.flickerexample.ui.search
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import com.example.flickerexample.R
 import com.example.flickerexample.core.base.BaseViewModel
 import com.example.flickerexample.core.base.BaseViewModelActivity
@@ -34,16 +32,15 @@ class SearchActivity : BaseViewModelActivity<SearchViewModel>(SearchViewModel::c
 
         }
 
-        viewModel.photosResultsLiveData.observe(this, Observer {
-            if (it?.isSuccessful != true){
+        viewModel.photosResultsLiveData.observe {
+            if (it?.isSuccessful != true || it?.photos == null) {
                 Snackbar.make(search_root, it?.message ?: "Unable to process", Snackbar.LENGTH_SHORT)
                     .show();
-                return@Observer
+                return@observe
             }
-            val intent = Intent(this, ResultsActivity::class.java)
-            intent.putExtra(ResultsActivity.PHOTOS, it.photos)
-            startActivity(intent)
-        })
+
+            startActivity(ResultsActivity.getIntent(this, it.photos))
+        }
     }
 }
 

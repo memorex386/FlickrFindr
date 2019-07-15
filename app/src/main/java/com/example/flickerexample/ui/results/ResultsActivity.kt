@@ -1,6 +1,7 @@
 package com.example.flickerexample.ui.results
 
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -16,10 +17,10 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.flickerexample.R
 import com.example.flickerexample.core.base.BaseViewModel
 import com.example.flickerexample.core.base.BaseViewModelActivity
-import com.example.flickerexample.core.extensions.observe
 import com.example.flickerexample.models.PhotoItem
 import com.example.flickerexample.models.Photos
 import com.example.flickerexample.models.getPhotoUrl
+import com.example.flickerexample.ui.image.ImageFullScreenActivity
 import kotlinx.android.synthetic.main.activity_results.*
 
 
@@ -31,9 +32,11 @@ class ResultsActivity : BaseViewModelActivity<ResultsViewModel>(ResultsViewModel
 
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        viewModel.photosResultsLiveData.observe(this){
+        viewModel.photosResultsLiveData.observe {
             it ?: return@observe
-            recyclerView.adapter = ResultsAdapter(it)
+            recyclerView.adapter = ResultsAdapter(it) { imageView, photoItem ->
+                ImageFullScreenActivity.startIntent(this, photoItem, imageView)
+            }
         }
 
         viewModel.setFromIntent(intent)
@@ -43,6 +46,10 @@ class ResultsActivity : BaseViewModelActivity<ResultsViewModel>(ResultsViewModel
 
     companion object {
         val PHOTOS = "PHOTOS"
+
+        fun getIntent(context: Context, photos: Photos) = Intent(context, ResultsActivity::class.java).apply {
+            putExtra(PHOTOS, photos)
+        }
     }
 }
 
@@ -65,7 +72,8 @@ class ResultsAdapterHolder(itemView : View) : RecyclerView.ViewHolder(itemView){
 
 }
 
-class ResultsAdapter(val photos : Photos) : RecyclerView.Adapter<ResultsAdapterHolder>(){
+class ResultsAdapter(val photos: Photos, val imageClicked: (ImageView, PhotoItem) -> Unit) :
+    RecyclerView.Adapter<ResultsAdapterHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ResultsAdapterHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.image_result_view_holder, parent, false)
@@ -75,6 +83,9 @@ class ResultsAdapter(val photos : Photos) : RecyclerView.Adapter<ResultsAdapterH
     override fun onBindViewHolder(holder: ResultsAdapterHolder, position: Int) {
         val photo = photos.photo[position]
         holder.bind(photo)
+        holder.itemView.setOnClickListener {
+            imageClicked(holder.image, photo)
+        }
 
     }
 
