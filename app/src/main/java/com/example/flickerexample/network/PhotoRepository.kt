@@ -11,7 +11,9 @@ object PhotoRepository : BaseRepository() {
             errorMessage = "Error Fetching Photos"
         )
 
-        return photosResponse
+        return photosResponse?.apply {
+            searchTerm = searchString
+        }
 
     }
 

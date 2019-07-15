@@ -17,7 +17,9 @@ data class PhotoSearchResults(
 	val message: String? = null,
 
 	@Json(name="photos")
-	val photos: Photos? = null
+	val photos: Photos? = null,
+
+	var searchTerm: String = ""
 
 ) : Parcelable
 

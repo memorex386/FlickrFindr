@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
                                    xmlns:app="http://schemas.android.com/apk/res-auto"
+                                   xmlns:tools="http://schemas.android.com/tools"
                                    android:layout_margin="8dp"
                                    android:id="@+id/card_root"
                                    android:layout_width="match_parent"
@@ -12,6 +13,8 @@
 
         <androidx.appcompat.widget.AppCompatImageView android:id="@+id/image_flickr" android:layout_width="match_parent"
                                                       android:layout_height="200dp"
+                                                      android:scaleType="centerCrop"
+                                                      tools:src="@drawable/ic_photo_size_select_actual_black_24dp"
                                                       android:transitionName="result_image"
                                                       app:layout_constraintTop_toTopOf="parent"/>
 
@@ -19,6 +22,7 @@
                   android:layout_height="wrap_content" app:layout_constraintEnd_toEndOf="parent"
                   android:layout_marginEnd="8dp" app:layout_constraintStart_toStartOf="parent"
                   android:layout_marginStart="8dp" android:layout_marginBottom="8dp"
+                  style="@style/title"
                   app:layout_constraintBottom_toBottomOf="@+id/image_flickr"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

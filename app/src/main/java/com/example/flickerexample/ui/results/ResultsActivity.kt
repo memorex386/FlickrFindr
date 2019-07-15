@@ -10,14 +10,13 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.lifecycle.MutableLiveData
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.flickerexample.R
 import com.example.flickerexample.core.base.BaseViewModel
 import com.example.flickerexample.core.base.BaseViewModelActivity
+import com.example.flickerexample.core.extensions.load
 import com.example.flickerexample.models.PhotoItem
+import com.example.flickerexample.models.PhotoSearchResults
 import com.example.flickerexample.models.Photos
 import com.example.flickerexample.models.getPhotoUrl
 import com.example.flickerexample.ui.image.ImageFullScreenActivity
@@ -30,13 +29,19 @@ class ResultsActivity : BaseViewModelActivity<ResultsViewModel>(ResultsViewModel
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_results)
 
-        recyclerView.layoutManager = LinearLayoutManager(this)
+        setSupportActionBar(toolbar)
+
+        supportActionBar?.apply {
+            setDisplayHomeAsUpEnabled(true)
+        }
 
         viewModel.photosResultsLiveData.observe {
             it ?: return@observe
-            recyclerView.adapter = ResultsAdapter(it) { imageView, photoItem ->
+            recyclerView.adapter = ResultsAdapter(it.photos) { imageView, photoItem ->
                 ImageFullScreenActivity.startIntent(this, photoItem, imageView)
             }
+
+            search_text
         }
 
         viewModel.setFromIntent(intent)
@@ -47,9 +52,10 @@ class ResultsActivity : BaseViewModelActivity<ResultsViewModel>(ResultsViewModel
     companion object {
         val PHOTOS = "PHOTOS"
 
-        fun getIntent(context: Context, photos: Photos) = Intent(context, ResultsActivity::class.java).apply {
-            putExtra(PHOTOS, photos)
-        }
+        fun getIntent(context: Context, photos: PhotoSearchResults) =
+            Intent(context, ResultsActivity::class.java).apply {
+                putExtra(PHOTOS, photos)
+            }
     }
 }
 
@@ -60,12 +66,16 @@ class ResultsAdapterHolder(itemView : View) : RecyclerView.ViewHolder(itemView){
 
     fun bind(photo : PhotoItem){
 
+        image.load(photo.getPhotoUrl())
+
+        /*
         Glide.with(image)
             .load(photo.getPhotoUrl())
             .centerCrop()
             .transition(DrawableTransitionOptions.withCrossFade())
             .placeholder(R.drawable.ic_photo_size_select_actual_black_24dp)
             .into(image)
+            */
 
         imageTitle.text = photo.title
     }
@@ -95,11 +105,10 @@ class ResultsAdapter(val photos: Photos, val imageClicked: (ImageView, PhotoItem
 
 class ResultsViewModel : BaseViewModel(){
 
-    val photosResultsLiveData = MutableLiveData<Photos>()
+    val photosResultsLiveData = MutableLiveData<PhotoSearchResults>()
 
     fun setFromIntent(intent : Intent?){
-        val photos = intent?.getParcelableExtra<Photos>(ResultsActivity.PHOTOS)
-        photosResultsLiveData.value = photos
+        photosResultsLiveData.value = intent?.getParcelableExtra(ResultsActivity.PHOTOS)
     }
 
 }

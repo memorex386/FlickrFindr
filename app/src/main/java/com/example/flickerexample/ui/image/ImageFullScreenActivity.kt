@@ -8,10 +8,10 @@ import android.os.Bundle
 import android.widget.ImageView
 import androidx.core.app.ActivityOptionsCompat
 import androidx.lifecycle.MutableLiveData
-import com.bumptech.glide.Glide
 import com.example.flickerexample.R
 import com.example.flickerexample.core.base.BaseViewModel
 import com.example.flickerexample.core.base.BaseViewModelActivity
+import com.example.flickerexample.core.extensions.load
 import com.example.flickerexample.models.PhotoItem
 import com.example.flickerexample.models.getPhotoUrl
 import kotlinx.android.synthetic.main.activity_image_full_screen.*
@@ -22,11 +22,12 @@ class ImageFullScreenActivity : BaseViewModelActivity<ImageFullScreenViewModel>(
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_image_full_screen)
 
+        supportPostponeEnterTransition()
+
         viewModel.photo.observeNotNulls {
-            Glide.with(this)
-                .load(it.getPhotoUrl())
-                .centerCrop()
-                .into(full_screen_image)
+            full_screen_image.load(it.getPhotoUrl()) {
+                supportStartPostponedEnterTransition()
+            }
         }
 
         viewModel.setFromIntent(intent)
