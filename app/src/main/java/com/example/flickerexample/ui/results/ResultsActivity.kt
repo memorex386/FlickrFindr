@@ -12,6 +12,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.flickerexample.R
 import com.example.flickerexample.core.base.BaseViewModel
 import com.example.flickerexample.core.base.BaseViewModelActivity
@@ -51,7 +52,14 @@ class ResultsAdapterHolder(itemView : View) : RecyclerView.ViewHolder(itemView){
     val imageTitle = itemView.findViewById<TextView>(R.id.image_flickr_title)
 
     fun bind(photo : PhotoItem){
-        Glide.with(image).load(photo.getPhotoUrl()).into(image)
+
+        Glide.with(image)
+            .load(photo.getPhotoUrl())
+            .centerCrop()
+            .transition(DrawableTransitionOptions.withCrossFade())
+            .placeholder(R.drawable.ic_photo_size_select_actual_black_24dp)
+            .into(image)
+
         imageTitle.text = photo.title
     }
 
