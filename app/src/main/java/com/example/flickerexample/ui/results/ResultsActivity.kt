@@ -9,7 +9,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.app.ActivityOptionsCompat
@@ -19,7 +18,6 @@ import com.example.flickerexample.R
 import com.example.flickerexample.core.base.BaseViewModel
 import com.example.flickerexample.core.base.BaseViewModelActivity
 import com.example.flickerexample.core.extensions.load
-import com.example.flickerexample.core.extensions.textString
 import com.example.flickerexample.models.PhotoItem
 import com.example.flickerexample.models.Photos
 import com.example.flickerexample.models.getPhotoUrl
@@ -47,7 +45,7 @@ class ResultsActivity : BaseViewModelActivity<ResultsViewModel>(ResultsViewModel
                 ImageFullScreenActivity.startIntent(this, photoItem, imageView)
             }
 
-            search_text.textString = it.searchTerm
+            search_text.text = it.searchTerm
         }
 
     }
@@ -60,12 +58,12 @@ class ResultsActivity : BaseViewModelActivity<ResultsViewModel>(ResultsViewModel
                 putExtra(PHOTOS, photos)
             }
 
-        fun startIntent(activity: Activity, photos: Photos, editText: EditText) {
+        fun startIntent(activity: Activity, photos: Photos, view: View) {
             val intent = getIntent(activity, photos)
             val options = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                ActivityOptionsCompat.makeSceneTransitionAnimation(activity, editText, editText.transitionName)
+                ActivityOptionsCompat.makeSceneTransitionAnimation(activity, view, view.transitionName)
             } else {
-                ActivityOptionsCompat.makeSceneTransitionAnimation(activity, editText, "search_query")
+                ActivityOptionsCompat.makeSceneTransitionAnimation(activity, view, "search_query")
             }
             activity.startActivity(intent, options.toBundle())
         }

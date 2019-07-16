@@ -5,8 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import com.example.flickerexample.R
 import com.example.flickerexample.core.base.BaseViewModel
 import com.example.flickerexample.core.base.BaseViewModelActivity
-import com.example.flickerexample.core.extensions.onActionSearch
-import com.example.flickerexample.core.extensions.textString
 import com.example.flickerexample.models.PhotoSearchResults
 import com.example.flickerexample.models.isSuccessful
 import com.example.flickerexample.network.PhotoRepository
@@ -23,7 +21,7 @@ class SearchActivity : BaseViewModelActivity<SearchViewModel>(SearchViewModel::c
         setContentView(R.layout.activity_search)
 
         search_button_now.setOnClickListener {
-            val searchString = edit_query.textString
+            val searchString = edit_query.text
             if (searchString.isNullOrBlank()) {
                 return@setOnClickListener
             }

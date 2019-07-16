@@ -12,8 +12,7 @@
                                        app:layout_constraintTop_toTopOf="parent"
                                        android:background="@color/colorPrimaryDark">
 
-        <androidx.appcompat.widget.AppCompatEditText
-                style="@style/SearchEditText"
+        <com.example.flickerexample.ui.views.CustomSearchView
                 android:transitionName="search_query"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
