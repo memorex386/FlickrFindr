@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import com.example.flickerexample.R
 import com.example.flickerexample.core.base.BaseViewModel
 import com.example.flickerexample.core.base.BaseViewModelActivity
+import com.example.flickerexample.core.extensions.onActionSearch
 import com.example.flickerexample.core.extensions.textString
 import com.example.flickerexample.models.PhotoSearchResults
 import com.example.flickerexample.models.isSuccessful
@@ -21,10 +22,9 @@ class SearchActivity : BaseViewModelActivity<SearchViewModel>(SearchViewModel::c
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
 
-
-        search_button.setOnClickListener {
-            var searchString = edit_query.textString
-            if (edit_query.textString.isNullOrBlank()){
+        search_button_now.setOnClickListener {
+            val searchString = edit_query.textString
+            if (searchString.isNullOrBlank()) {
                 return@setOnClickListener
             }
 
@@ -32,16 +32,20 @@ class SearchActivity : BaseViewModelActivity<SearchViewModel>(SearchViewModel::c
 
         }
 
+        edit_query.onActionSearch(::fetchPhotos)
+
         viewModel.photosResultsLiveData.observe {
-            if (it?.isSuccessful != true || it?.photos == null) {
+            if (it?.isSuccessful != true || it.photos == null) {
                 Snackbar.make(search_root, it?.message ?: "Unable to process", Snackbar.LENGTH_SHORT)
                     .show();
                 return@observe
             }
 
-            startActivity(ResultsActivity.getIntent(this, it.photos))
+            ResultsActivity.startIntent(this, it.photos, edit_query)
         }
     }
+
+    fun fetchPhotos(searchString: String) = viewModel.fetchPhotos(searchString)
 }
 
 class SearchViewModel : BaseViewModel(){

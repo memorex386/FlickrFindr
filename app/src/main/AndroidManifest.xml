@@ -11,9 +11,11 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
-        <activity android:name=".ui.image.ImageFullScreenActivity">
+        <activity android:name=".ui.image.ImageFullScreenActivity"
+                  android:parentActivityName=".ui.results.ResultsActivity">
         </activity>
-        <activity android:name=".ui.results.ResultsActivity">
+        <activity android:name=".ui.results.ResultsActivity"
+                  android:parentActivityName=".ui.search.SearchActivity">
         </activity>
         <activity android:name=".ui.search.SearchActivity">
             <intent-filter>

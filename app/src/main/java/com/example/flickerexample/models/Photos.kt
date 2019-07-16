@@ -20,5 +20,7 @@ data class Photos(
 	val photo: List<PhotoItem>,
 
 	@Json(name="page")
-	val page: Int
+	val page: Int,
+
+	var searchTerm: String = ""
 ) : Parcelable

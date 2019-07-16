@@ -13,6 +13,9 @@ object PhotoRepository : BaseRepository() {
 
         return photosResponse?.apply {
             searchTerm = searchString
+            photos?.apply {
+                searchTerm = searchString
+            }
         }
 
     }

@@ -9,8 +9,6 @@ object NetworkFactory {
 
     private val okHttpClient = OkHttpClient().newBuilder().build()
 
-
-    //Flickr api = https://api.flickr.com/services/rest/?method=flickr.galleries.getPhotos&api_key=APIKEY&gallery_id=66911286-72157647277042064&format=json&nojsoncallback=1
     private fun retrofit() : Retrofit = Retrofit.Builder()
         .client(okHttpClient)
         .baseUrl("https://api.flickr.com/services/rest/")

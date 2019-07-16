@@ -2,6 +2,7 @@ package com.example.flickerexample.ui.image
 
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -22,6 +23,8 @@ class ImageFullScreenActivity : BaseViewModelActivity<ImageFullScreenViewModel>(
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_image_full_screen)
 
+        viewModel.setFromIntent(intent)
+
         supportPostponeEnterTransition()
 
         viewModel.photo.observeNotNulls {
@@ -30,16 +33,18 @@ class ImageFullScreenActivity : BaseViewModelActivity<ImageFullScreenViewModel>(
             }
         }
 
-        viewModel.setFromIntent(intent)
     }
 
     companion object {
         val PHOTO = "PHOTO"
 
-        fun startIntent(activity: Activity, photoItem: PhotoItem, imageView: ImageView) {
-            val intent = Intent(activity, ImageFullScreenActivity::class.java).apply {
+        fun getIntent(context: Context, photoItem: PhotoItem) =
+            Intent(context, ImageFullScreenActivity::class.java).apply {
                 putExtra(PHOTO, photoItem)
             }
+
+        fun startIntent(activity: Activity, photoItem: PhotoItem, imageView: ImageView) {
+            val intent = getIntent(activity, photoItem)
             val options = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 ActivityOptionsCompat.makeSceneTransitionAnimation(activity, imageView, imageView.transitionName)
             } else {
