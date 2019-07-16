@@ -22,6 +22,7 @@ import com.example.flickerexample.ui.search.BaseSearchActivity
 import com.example.flickerexample.ui.search.SearchViewModel
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_results.*
+import kotlinx.android.synthetic.main.loading.*
 
 
 class ResultsActivity : BaseSearchActivity<ResultsViewModel>(ResultsViewModel::class.java) {

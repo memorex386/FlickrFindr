@@ -16,6 +16,7 @@ import com.example.flickerexample.core.base.BaseViewModel
 import com.example.flickerexample.core.base.BaseViewModelActivity
 import com.example.flickerexample.core.base.LiveDataAction
 import com.example.flickerexample.core.extensions.addStart
+import com.example.flickerexample.core.extensions.post
 import com.example.flickerexample.models.photos.SearchQuery
 import com.example.flickerexample.models.photos.isSuccessful
 import com.example.flickerexample.network.PhotoRepository
@@ -23,6 +24,7 @@ import com.example.flickerexample.room.flickerDB
 import com.example.flickerexample.ui.results.ResultsActivity
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_search.*
+import kotlinx.android.synthetic.main.loading.*
 import kotlinx.coroutines.launch
 
 
@@ -67,6 +69,9 @@ class SearchActivity : BaseSearchActivity<SearchViewModel>(SearchViewModel::clas
     override fun loading() = loading
 
     private fun searchQueriesUpdated(list: List<SearchQuery>) {
+        if (list.isEmpty()) {
+            return
+        }
         past_search_recycler_view.adapter = SearchAdapter(list) {
             edit_query.text = it.searchTerm
             trySearch(it.searchTerm)
@@ -161,7 +166,21 @@ open class SearchViewModel : BaseViewModel() {
 
     fun fetchSearchQueries() {
         scope.launch {
-            searchQueries.postValue(asyncSearchQueries())
+            var queries = asyncSearchQueries()
+            if (queries.isEmpty()) {
+                val newList = arrayOf(
+                    SearchQuery("cat"),
+                    SearchQuery("dog"),
+                    SearchQuery("man"),
+                    SearchQuery("Aaron Rodgers"),
+                    SearchQuery("catdog"),
+                    SearchQuery("turkey"),
+                    SearchQuery("zebra")
+                )
+                flickerDB.searchQueryDao().insert(*newList)
+                searchQueries.post = newList.toList()
+            } else
+                searchQueries.postValue(queries)
         }
     }
 

@@ -13,5 +13,6 @@ interface SearchQueryDao {
     suspend fun getAll(): List<SearchQuery>
 
     @Insert(onConflict = REPLACE)
-    suspend fun insert(searchQuery: SearchQuery)
+    suspend fun insert(vararg searchQuery: SearchQuery)
+
 }
