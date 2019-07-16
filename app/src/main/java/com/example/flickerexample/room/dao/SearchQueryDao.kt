@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy.REPLACE
 import androidx.room.Query
-import com.example.flickerexample.models.SearchQuery
+import com.example.flickerexample.models.photos.SearchQuery
 
 @Dao
 interface SearchQueryDao {

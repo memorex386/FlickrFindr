@@ -15,7 +15,7 @@ import androidx.core.app.ActivityOptionsCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.flickerexample.R
 import com.example.flickerexample.core.extensions.load
-import com.example.flickerexample.models.*
+import com.example.flickerexample.models.photos.*
 import com.example.flickerexample.network.PhotoRepository
 import com.example.flickerexample.ui.image.ImageFullScreenActivity
 import com.example.flickerexample.ui.search.BaseSearchActivity

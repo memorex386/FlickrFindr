@@ -1,4 +1,4 @@
-package com.example.flickerexample.models
+package com.example.flickerexample.models.photos
 
 import android.os.Parcelable
 import com.squareup.moshi.Json

@@ -13,9 +13,13 @@ import com.example.flickerexample.R
 import com.example.flickerexample.core.base.BaseViewModel
 import com.example.flickerexample.core.base.BaseViewModelActivity
 import com.example.flickerexample.core.extensions.load
-import com.example.flickerexample.models.PhotoItem
-import com.example.flickerexample.models.getPhotoUrl
+import com.example.flickerexample.core.extensions.post
+import com.example.flickerexample.models.photo_info.PhotoInfoResponse
+import com.example.flickerexample.models.photos.PhotoItem
+import com.example.flickerexample.models.photos.getPhotoUrl
+import com.example.flickerexample.network.PhotoRepository
 import kotlinx.android.synthetic.main.activity_image_full_screen.*
+import kotlinx.coroutines.launch
 
 class ImageFullScreenActivity : BaseViewModelActivity<ImageFullScreenViewModel>(ImageFullScreenViewModel::class.java) {
 
@@ -30,7 +34,18 @@ class ImageFullScreenActivity : BaseViewModelActivity<ImageFullScreenViewModel>(
         viewModel.photo.observeNotNull {
             full_screen_image.load(it.getPhotoUrl()) {
                 supportStartPostponedEnterTransition()
+                image_flickr_title.text = it.title
             }
+        }
+
+        viewModel.photoInfo.observeNotNull {
+            it?.photo?.also {
+                author.text = it.owner?.username
+            }
+        }
+
+        close.setOnClickListener {
+            onBackPressed()
         }
 
     }
@@ -59,8 +74,15 @@ class ImageFullScreenViewModel : BaseViewModel(){
 
     val photo = MutableLiveData<PhotoItem>()
 
+    val photoInfo = MutableLiveData<PhotoInfoResponse>()
+
     fun setFromIntent(intent: Intent) {
         photo.value = intent.getParcelableExtra(ImageFullScreenActivity.PHOTO)
+        scope.launch {
+            photo.value?.also {
+                photoInfo.post = PhotoRepository.getPhotoInfo(it)
+            }
+        }
     }
 
 }

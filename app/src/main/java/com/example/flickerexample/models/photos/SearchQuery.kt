@@ -1,4 +1,4 @@
-package com.example.flickerexample.models
+package com.example.flickerexample.models.photos
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

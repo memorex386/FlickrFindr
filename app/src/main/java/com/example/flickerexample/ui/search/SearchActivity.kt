@@ -16,8 +16,8 @@ import com.example.flickerexample.core.base.BaseViewModel
 import com.example.flickerexample.core.base.BaseViewModelActivity
 import com.example.flickerexample.core.base.LiveDataAction
 import com.example.flickerexample.core.extensions.addStart
-import com.example.flickerexample.models.SearchQuery
-import com.example.flickerexample.models.isSuccessful
+import com.example.flickerexample.models.photos.SearchQuery
+import com.example.flickerexample.models.photos.isSuccessful
 import com.example.flickerexample.network.PhotoRepository
 import com.example.flickerexample.room.flickerDB
 import com.example.flickerexample.ui.results.ResultsActivity

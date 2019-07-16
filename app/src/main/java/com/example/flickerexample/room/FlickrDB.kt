@@ -4,7 +4,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.flickerexample.core.app
-import com.example.flickerexample.models.SearchQuery
+import com.example.flickerexample.models.photos.SearchQuery
 import com.example.flickerexample.room.dao.SearchQueryDao
 
 @Database(entities = [SearchQuery::class], version = 1)
