@@ -4,13 +4,18 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AlphaAnimation
+import android.view.animation.Animation
+import android.view.animation.DecelerateInterpolator
 import android.widget.TextView
+import androidx.core.view.isVisible
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.RecyclerView
 import com.example.flickerexample.R
 import com.example.flickerexample.core.base.BaseViewModel
 import com.example.flickerexample.core.base.BaseViewModelActivity
-import com.example.flickerexample.models.PhotoSearchResults
+import com.example.flickerexample.core.base.LiveDataAction
+import com.example.flickerexample.core.extensions.addStart
 import com.example.flickerexample.models.SearchQuery
 import com.example.flickerexample.models.isSuccessful
 import com.example.flickerexample.network.PhotoRepository
@@ -21,47 +26,95 @@ import kotlinx.android.synthetic.main.activity_search.*
 import kotlinx.coroutines.launch
 
 
-class SearchActivity : BaseViewModelActivity<SearchViewModel>(SearchViewModel::class.java) {
+class SearchActivity : BaseSearchActivity<SearchViewModel>(SearchViewModel::class.java) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
 
-        viewModel.init()
-
         search_button_now.setOnClickListener {
-            val searchString = edit_query.text
-            if (searchString.isNullOrBlank()) {
-                return@setOnClickListener
-            }
-
-            viewModel.fetchPhotos(searchString)
-
+            trySearch(edit_query.text)
         }
 
-        edit_query.onActionSearch(::fetchPhotos)
+        edit_query.onActionSearch(::trySearch)
 
-        viewModel.photosResultsLiveData.observe {
-            if (it?.isSuccessful != true || it.photos == null) {
-                Snackbar.make(search_root, it?.message ?: "Unable to process", Snackbar.LENGTH_SHORT)
+        viewModel.photosFetchedAction.observe {
+            showLoading(false)
+
+            val result = PhotoRepository.lastResult.value
+            if (result?.isSuccessful != true || result.photos == null) {
+                Snackbar.make(search_root, result?.message ?: "Unable to process", Snackbar.LENGTH_SHORT)
                     .show();
                 return@observe
             }
 
-            ResultsActivity.startIntent(this, it.photos, edit_query)
+            ResultsActivity.startIntent(this, result, edit_query)
         }
 
-        viewModel.searchQueries.observeNotNulls {
-            past_search_recycler_view.adapter = SearchAdapter(it) {
-                edit_query.text = it.searchTerm
-                fetchPhotos(it.searchTerm)
-            }
+
+        lifecycle.addStart {
+
+            viewModel.fetchSearchQueries()
+
+            viewModel.searchQueries.singleObserveNotNull(::searchQueriesUpdated)
+
+            edit_query.text = PhotoRepository.lastResult.value?.searchTerm ?: ""
+        }
+    }
+
+    override fun rootView() = search_root
+
+    override fun loading() = loading
+
+    private fun searchQueriesUpdated(list: List<SearchQuery>) {
+        past_search_recycler_view.adapter = SearchAdapter(list) {
+            edit_query.text = it.searchTerm
+            trySearch(it.searchTerm)
+        }
+    }
+
+
+}
+
+abstract class BaseSearchActivity<T : SearchViewModel>(_viewModelType: Class<T>) :
+    BaseViewModelActivity<T>(_viewModelType) {
+
+    fun trySearch(searchString: String) {
+        if (searchString.isBlank()) {
+            Snackbar.make(rootView(), getString(R.string.invalid_search), Snackbar.LENGTH_SHORT)
+                .show();
+            return
         }
 
+        showLoading(true)
+
+
+        viewModel.fetchPhotos(searchString)
+    }
+
+    fun showLoading(show: Boolean) {
+        AlphaAnimation(if (show) 0f else 1f, if (show) 1f else 0f).apply {
+            interpolator = DecelerateInterpolator()
+            duration = 300L
+            setAnimationListener(object : Animation.AnimationListener {
+                override fun onAnimationStart(animation: Animation) {
+                    if (show) loading()?.isVisible = show
+                }
+
+                override fun onAnimationEnd(animation: Animation) {
+                    loading()?.isVisible = show
+                }
+
+                override fun onAnimationRepeat(animation: Animation) {}
+            })
+            loading()?.startAnimation(this)
+        }
 
     }
 
-    fun fetchPhotos(searchString: String) = viewModel.fetchPhotos(searchString)
+    abstract fun rootView(): View
+    abstract fun loading(): View?
+
 }
 
 
@@ -97,23 +150,26 @@ class SearchAdapter(val searchQueries: List<SearchQuery>, val searchClicked: (Se
 
 }
 
-class SearchViewModel : BaseViewModel(){
-
-    val photosResultsLiveData = MutableLiveData<PhotoSearchResults>()
+open class SearchViewModel : BaseViewModel() {
 
     val searchQueries = MutableLiveData<List<SearchQuery>>()
 
+    val photosFetchedAction = LiveDataAction()
 
-    fun init() {
+    private suspend fun asyncSearchQueries() =
+        flickerDB.searchQueryDao().getAll().sortedWith(compareByDescending { it.lastUsed })
+
+    fun fetchSearchQueries() {
         scope.launch {
-            searchQueries.postValue(flickerDB.searchQueryDao().getAll())
+            searchQueries.postValue(asyncSearchQueries())
         }
     }
 
-    fun fetchPhotos(searchString : String){
+    fun fetchPhotos(searchString: String) {
         scope.launch {
-            val photoResults = PhotoRepository.getPhotos(searchString)
-            photosResultsLiveData.postValue(photoResults)
+            PhotoRepository.getPhotos(searchString)
+            asyncSearchQueries()
+            photosFetchedAction.postTrigger()
         }
     }
 

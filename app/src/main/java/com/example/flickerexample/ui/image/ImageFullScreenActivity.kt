@@ -27,7 +27,7 @@ class ImageFullScreenActivity : BaseViewModelActivity<ImageFullScreenViewModel>(
 
         supportPostponeEnterTransition()
 
-        viewModel.photo.observeNotNulls {
+        viewModel.photo.observeNotNull {
             full_screen_image.load(it.getPhotoUrl()) {
                 supportStartPostponedEnterTransition()
             }

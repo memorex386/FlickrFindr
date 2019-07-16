@@ -43,4 +43,18 @@
                                                app:layout_constraintBottom_toBottomOf="parent"
                                                app:layout_constraintTop_toBottomOf="@+id/search_button_now"></androidx.recyclerview.widget.RecyclerView>
 
+    <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent"
+                 android:background="@color/black_20"
+                 android:id="@+id/loading"
+                 android:visibility="gone"
+                 app:layout_constraintBottom_toBottomOf="parent"
+                 app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent"
+                 app:layout_constraintEnd_toEndOf="parent"
+    >
+        <androidx.core.widget.ContentLoadingProgressBar android:layout_width="100dp"
+                                                        style="?android:attr/progressBarStyleLarge"
+                                                        android:layout_gravity="center"
+                                                        android:layout_height="100dp"/>
+    </FrameLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -12,20 +12,19 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.app.ActivityOptionsCompat
-import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.RecyclerView
 import com.example.flickerexample.R
-import com.example.flickerexample.core.base.BaseViewModel
-import com.example.flickerexample.core.base.BaseViewModelActivity
 import com.example.flickerexample.core.extensions.load
-import com.example.flickerexample.models.PhotoItem
-import com.example.flickerexample.models.Photos
-import com.example.flickerexample.models.getPhotoUrl
+import com.example.flickerexample.models.*
+import com.example.flickerexample.network.PhotoRepository
 import com.example.flickerexample.ui.image.ImageFullScreenActivity
+import com.example.flickerexample.ui.search.BaseSearchActivity
+import com.example.flickerexample.ui.search.SearchViewModel
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_results.*
 
 
-class ResultsActivity : BaseViewModelActivity<ResultsViewModel>(ResultsViewModel::class.java) {
+class ResultsActivity : BaseSearchActivity<ResultsViewModel>(ResultsViewModel::class.java) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,28 +36,41 @@ class ResultsActivity : BaseViewModelActivity<ResultsViewModel>(ResultsViewModel
             setDisplayHomeAsUpEnabled(true)
         }
 
+        search_text.onActionSearch(::trySearch)
 
-        viewModel.setFromIntent(intent)
+        PhotoRepository.lastResult.singleObserve {
+            if (it?.isSuccessful != true || it.photos == null) {
+                Snackbar.make(rootView(), it?.message ?: "Unable to process", Snackbar.LENGTH_SHORT)
+                    .show();
+                return@singleObserve
+            }
 
-        viewModel.photosResultsLiveData.observeNotNulls {
-            recyclerView.adapter = ResultsAdapter(it) { imageView, photoItem ->
+            recyclerView.adapter = ResultsAdapter(it.photos) { imageView, photoItem ->
                 ImageFullScreenActivity.startIntent(this, photoItem, imageView)
             }
 
             search_text.text = it.searchTerm
         }
 
+        viewModel.photosFetchedAction.observe {
+            showLoading(false)
+        }
+
     }
+
+    override fun rootView() = results_root
+
+    override fun loading() = loading
 
     companion object {
         val PHOTOS = "PHOTOS"
 
-        fun getIntent(context: Context, photos: Photos) =
+        fun getIntent(context: Context, photos: PhotoSearchResults) =
             Intent(context, ResultsActivity::class.java).apply {
                 putExtra(PHOTOS, photos)
             }
 
-        fun startIntent(activity: Activity, photos: Photos, view: View) {
+        fun startIntent(activity: Activity, photos: PhotoSearchResults, view: View) {
             val intent = getIntent(activity, photos)
             val options = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 ActivityOptionsCompat.makeSceneTransitionAnimation(activity, view, view.transitionName)
@@ -105,12 +117,6 @@ class ResultsAdapter(val photos: Photos, val imageClicked: (ImageView, PhotoItem
 
 }
 
-class ResultsViewModel : BaseViewModel(){
-
-    val photosResultsLiveData = MutableLiveData<Photos>()
-
-    fun setFromIntent(intent : Intent?){
-        photosResultsLiveData.value = intent?.getParcelableExtra(ResultsActivity.PHOTOS)
-    }
+class ResultsViewModel : SearchViewModel() {
 
 }

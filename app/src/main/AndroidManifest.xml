@@ -13,12 +13,15 @@
             android:name=".core.CustomApplication"
             android:theme="@style/AppTheme">
         <activity android:name=".ui.image.ImageFullScreenActivity"
+                  android:windowSoftInputMode="stateHidden"
                   android:parentActivityName=".ui.results.ResultsActivity">
         </activity>
         <activity android:name=".ui.results.ResultsActivity"
+                  android:windowSoftInputMode="stateHidden"
                   android:parentActivityName=".ui.search.SearchActivity">
         </activity>
-        <activity android:name=".ui.search.SearchActivity">
+        <activity android:name=".ui.search.SearchActivity"
+                  android:windowSoftInputMode="stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
