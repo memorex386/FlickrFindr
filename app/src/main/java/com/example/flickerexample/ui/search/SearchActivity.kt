@@ -68,6 +68,10 @@ class SearchActivity : BaseSearchActivity<SearchViewModel>(SearchViewModel::clas
 
     override fun loading() = loading
 
+    /**
+     * pass search query list
+     * @param list search query list
+     */
     private fun searchQueriesUpdated(list: List<SearchQuery>) {
         if (list.isEmpty()) {
             return
@@ -164,10 +168,14 @@ open class SearchViewModel : BaseViewModel() {
     private suspend fun asyncSearchQueries() =
         flickerDB.searchQueryDao().getAll().sortedWith(compareByDescending { it.lastUsed })
 
+    /**
+     * async fetch search Queries
+     */
     fun fetchSearchQueries() {
         scope.launch {
-            var queries = asyncSearchQueries()
+            val queries = asyncSearchQueries()
             if (queries.isEmpty()) {
+                //TODO : Added this to offer some recent history right off the bat
                 val newList = arrayOf(
                     SearchQuery("cat"),
                     SearchQuery("dog"),
