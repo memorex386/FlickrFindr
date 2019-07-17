@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -39,11 +40,27 @@ class ResultsActivity : BaseSearchActivity<ResultsViewModel>(ResultsViewModel::c
 
         search_text.onActionSearch(::trySearch)
 
-        PhotoRepository.lastResult.singleObserve {
+        page_left.setOnClickListener {
+            PhotoRepository.lastResult.value?.photos?.takeIf { it.page > 1 && viewModel.isLoading.value != true }
+                ?.also {
+                    PhotoRepository.currentPage--
+                    trySearch()
+                }
+        }
+
+        page_right.setOnClickListener {
+            PhotoRepository.lastResult.value?.photos?.takeIf { it.page < it.pages && viewModel.isLoading.value != true }
+                ?.also {
+                    PhotoRepository.currentPage++
+                    trySearch()
+                }
+        }
+
+        PhotoRepository.lastResult.observe {
             if (it?.isSuccessful != true || it.photos == null) {
                 Snackbar.make(rootView(), it?.message ?: "Unable to process", Snackbar.LENGTH_SHORT)
                     .show();
-                return@singleObserve
+                return@observe
             }
 
             recyclerView.adapter = ResultsAdapter(it.photos) { imageView, photoItem ->
@@ -51,6 +68,8 @@ class ResultsActivity : BaseSearchActivity<ResultsViewModel>(ResultsViewModel::c
             }
 
             search_text.text = it.searchTerm
+
+            page_title.text = Html.fromHtml("Page <b>${it.photos.page}</b> of ${it.photos.pages}")
         }
 
         viewModel.photosFetchedAction.observe {

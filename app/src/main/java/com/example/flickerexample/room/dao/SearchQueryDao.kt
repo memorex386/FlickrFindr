@@ -9,7 +9,7 @@ import com.example.flickerexample.models.photos.SearchQuery
 @Dao
 interface SearchQueryDao {
 
-    @Query("SELECT * from SearchQuery")
+    @Query("SELECT * from SearchQuery ORDER BY lastUsed DESC")
     suspend fun getAll(): List<SearchQuery>
 
     @Insert(onConflict = REPLACE)

@@ -88,7 +88,7 @@ class SearchActivity : BaseSearchActivity<SearchViewModel>(SearchViewModel::clas
 abstract class BaseSearchActivity<T : SearchViewModel>(_viewModelType: Class<T>) :
     BaseViewModelActivity<T>(_viewModelType) {
 
-    fun trySearch(searchString: String) {
+    fun trySearch(searchString: String = PhotoRepository.lastResult.value?.searchTerm ?: "") {
         if (searchString.isBlank()) {
             Snackbar.make(rootView(), getString(R.string.invalid_search), Snackbar.LENGTH_SHORT)
                 .show();
@@ -165,8 +165,10 @@ open class SearchViewModel : BaseViewModel() {
 
     val photosFetchedAction = LiveDataAction()
 
+    val isLoading = MutableLiveData<Boolean>()
+
     private suspend fun asyncSearchQueries() =
-        flickerDB.searchQueryDao().getAll().sortedWith(compareByDescending { it.lastUsed })
+        flickerDB.searchQueryDao().getAll()
 
     /**
      * async fetch search Queries
@@ -175,6 +177,7 @@ open class SearchViewModel : BaseViewModel() {
         scope.launch {
             val queries = asyncSearchQueries()
             if (queries.isEmpty()) {
+
                 //TODO : Added this to offer some recent history right off the bat
                 val newList = arrayOf(
                     SearchQuery("cat"),
@@ -187,16 +190,19 @@ open class SearchViewModel : BaseViewModel() {
                 )
                 flickerDB.searchQueryDao().insert(*newList)
                 searchQueries.post = newList.toList()
+
             } else
-                searchQueries.postValue(queries)
+                searchQueries.post = (queries)
         }
     }
 
     fun fetchPhotos(searchString: String) {
+        isLoading.value = true
         scope.launch {
             PhotoRepository.getPhotos(searchString)
             asyncSearchQueries()
             photosFetchedAction.postTrigger()
+            isLoading.post = false
         }
     }
 

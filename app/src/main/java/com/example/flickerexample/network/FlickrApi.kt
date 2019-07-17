@@ -9,8 +9,12 @@ import retrofit2.http.Query
 
 interface FlickrApi{
 
-    @GET("?method=flickr.photos.search$flickrParams")
-    fun getPhotosFromSearch(@Query("text") searchString:String): Deferred<Response<PhotoSearchResults>>
+    @GET("?method=flickr.photos.search$flickrParams&tag_mode=all")
+    fun getPhotosFromSearch(
+        @Query("text") searchString: String, @Query("sort") @PhotoSort sort: String = PhotoSort.RELEVANCE, @Query(
+            "page"
+        ) page: Int = 1
+    ): Deferred<Response<PhotoSearchResults>>
 
     @GET("?method=flickr.photos.getInfo$flickrParams")
     fun getPhotoInfo(@Query("photo_id") photoId: String, @Query("secret") secret: String): Deferred<Response<PhotoInfoResponse>>

@@ -31,6 +31,34 @@
                                                android:id="@+id/recyclerView"
                                                app:layout_constraintBottom_toBottomOf="parent"/>
 
+    <View android:layout_width="match_parent" android:layout_height="10dp" android:background="@drawable/fade"
+          app:layout_constraintBottom_toTopOf="@+id/linearLayout"/>
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                  android:background="@color/white" android:orientation="horizontal"
+                  app:layout_constraintBottom_toBottomOf="parent"
+                  app:layout_constraintStart_toStartOf="parent"
+                  app:layout_constraintEnd_toEndOf="parent" android:id="@+id/linearLayout">
+
+        <androidx.appcompat.widget.AppCompatImageView android:layout_width="48dp"
+                                                      android:background="?selectableItemBackground"
+                                                      android:src="@drawable/ic_keyboard_arrow_left_black_24dp"
+                                                      android:layout_height="48dp"
+                                                      android:id="@+id/page_left"/>
+
+        <TextView android:id="@+id/page_title" android:layout_width="0dp" android:layout_height="48dp"
+                  android:gravity="center"
+                  style="@style/Body"
+                  android:layout_weight="1"/>
+
+
+        <androidx.appcompat.widget.AppCompatImageView android:layout_width="48dp"
+                                                      android:background="?selectableItemBackground"
+                                                      android:src="@drawable/ic_keyboard_arrow_right_black_24dp"
+                                                      android:layout_height="48dp"
+                                                      android:id="@+id/page_right"/>
+    </LinearLayout>
+
 
     <include layout="@layout/loading"/>
 
