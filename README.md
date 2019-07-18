@@ -35,6 +35,7 @@ The app is a MVVM or MVI approach.  Worked hard on seperating ui with core logic
 * Recycler View Data Set Changed Animation - the Android core animation for this in the Bookmark Activity is acting weird.
 
 ##Thank You!
+
 Please check out my other sample app at [https://github.com/memorex386/github_example](https://github.com/memorex386/github_example)  where I used other tools like :
 
 * RxJava
