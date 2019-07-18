@@ -90,6 +90,9 @@ class ResultsActivity : BaseSearchActivity<ResultsViewModel>(ResultsViewModel::c
 
     override fun loading() = loading
 
+    override fun searchBox() = search_text
+
+
     companion object {
         val PHOTOS = "PHOTOS"
 

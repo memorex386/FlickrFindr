@@ -9,4 +9,7 @@
         them here!
     </string>
     <string name="error_encountered">Error encountered</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="sort_by">Sort By</string>
 </resources>

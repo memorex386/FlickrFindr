@@ -22,6 +22,7 @@ import com.example.flickerexample.network.Result
 import com.example.flickerexample.room.flickerDB
 import com.example.flickerexample.ui.bookmarks.BookmarkedActivity
 import com.example.flickerexample.ui.results.ResultsActivity
+import com.example.flickerexample.ui.views.CustomSearchView
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_search.*
 import kotlinx.android.synthetic.main.loading.*
@@ -80,6 +81,8 @@ class SearchActivity : BaseSearchActivity<SearchViewModel>(SearchViewModel::clas
 
     override fun loading() = loading
 
+    override fun searchBox() = edit_query
+
     /**
      * pass search query list
      * @param list search query list
@@ -99,6 +102,16 @@ class SearchActivity : BaseSearchActivity<SearchViewModel>(SearchViewModel::clas
 
 abstract class BaseSearchActivity<T : SearchViewModel>(_viewModelType: Class<T>) :
     BaseViewModelActivity<T>(_viewModelType) {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        lifecycle.addStart {
+            searchBox().onSortChanged = {
+                trySearch()
+            }
+        }
+    }
 
     fun snackBar(err: String) = Snackbar.make(rootView(), err, Snackbar.LENGTH_SHORT)
         .show();
@@ -120,6 +133,7 @@ abstract class BaseSearchActivity<T : SearchViewModel>(_viewModelType: Class<T>)
 
     abstract fun rootView(): View
     abstract fun loading(): View?
+    abstract fun searchBox(): CustomSearchView
 
 }
 
