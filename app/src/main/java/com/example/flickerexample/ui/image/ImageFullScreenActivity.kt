@@ -46,10 +46,19 @@ class ImageFullScreenActivity : BaseViewModelActivity<ImageFullScreenViewModel>(
         supportPostponeEnterTransition()
 
         viewModel.photo.observeNotNull {
-            full_screen_image.load(it.getPhotoUrl()) {
+
+            val loaded: ((Boolean) -> Unit) = { success ->
                 supportStartPostponedEnterTransition()
                 image_flickr_title.text = it.title
             }
+
+            full_screen_image.apply {
+                when ((it.dateBookmarked != null)) {
+                    true -> load(File(app.filesDir, it.id), loaded)
+                    false -> load(it.getPhotoUrl(), loaded)
+                }
+            }
+
         }
 
         viewModel.photoInfo.observeNotNull {
@@ -109,6 +118,7 @@ class ImageFullScreenActivity : BaseViewModelActivity<ImageFullScreenViewModel>(
         }
     }
 }
+
 
 class ImageFullScreenViewModel : BaseViewModel(){
 

@@ -13,6 +13,8 @@ import com.example.flickerexample.R
 import com.example.flickerexample.core.app
 import com.example.flickerexample.core.base.BaseViewModel
 import com.example.flickerexample.core.base.BaseViewModelActivity
+import com.example.flickerexample.core.base.ResultLiveDataAction
+import com.example.flickerexample.core.extensions.addStart
 import com.example.flickerexample.core.extensions.post
 import com.example.flickerexample.models.photos.PhotoItem
 import com.example.flickerexample.room.flickerDB
@@ -38,18 +40,38 @@ class BookmarkedActivity : BaseViewModelActivity<BookmarksViewModel>(BookmarksVi
             setDisplayHomeAsUpEnabled(true)
         }
 
+        fun checkList(items: Collection<PhotoItem>?) {
+            recyclerView.isVisible = !items.isNullOrEmpty()
+
+            none_found.isVisible = items.isNullOrEmpty()
+        }
+
         viewModel.bookmarks.observe {
             recyclerView.adapter =
                 if (it.isNullOrEmpty()) null else BookmarkResultsAdapter(it) { imageView, photoItem ->
+                    viewModel.lastClicked = photoItem
                     ImageFullScreenActivity.startIntent(this, photoItem, imageView)
                 }
 
-            recyclerView.isVisible = !it.isNullOrEmpty()
-
-            none_found.isVisible = it.isNullOrEmpty()
+            checkList(it)
         }
 
         viewModel.fetchBookmarks()
+
+        viewModel.bookmarkChecked.observe { result ->
+            if (result.second) return@observe
+            (recyclerView.adapter as? BookmarkResultsAdapter)?.apply {
+                removeItem { it.id == result.first.id }
+                checkList(photos)
+            }
+
+        }
+
+        lifecycle.addStart {
+            viewModel.lastClicked?.also { found ->
+                viewModel.checkBookmark(found)
+            }
+        }
 
     }
 
@@ -71,7 +93,7 @@ class BookmarkResultsAdapterHolder(itemView: View) : ResultsAdapterHolder(itemVi
 
 
 class BookmarkResultsAdapter(photos: List<PhotoItem>, imageClicked: (ImageView, PhotoItem) -> Unit) :
-    ResultsAdapter<BookmarkResultsAdapterHolder>(photos, imageClicked) {
+    ResultsAdapter<BookmarkResultsAdapterHolder>(photos.toMutableList(), imageClicked) {
     override fun createViewHolder(view: View) = BookmarkResultsAdapterHolder(view)
 }
 
@@ -80,6 +102,13 @@ class BookmarksViewModel : BaseViewModel() {
 
     val bookmarks = MutableLiveData<List<PhotoItem>>()
 
+    var lastClicked: PhotoItem? = null
+
+    val bookmarkChecked = ResultLiveDataAction<Pair<PhotoItem, Boolean>>()
+
+    fun checkBookmark(photo: PhotoItem) = scope.launch {
+        bookmarkChecked.postTrigger(Pair(photo, flickerDB.photoItemDao().getById(photo.id) != null))
+    }
 
     fun fetchBookmarks() = scope.launch {
         bookmarks.post = flickerDB.photoItemDao().getAll()

@@ -15,7 +15,7 @@ import android.widget.TextView
 import androidx.core.app.ActivityOptionsCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.flickerexample.R
-import com.example.flickerexample.core.extensions.load
+import com.example.flickerexample.core.extensions.loadAnimate
 import com.example.flickerexample.models.photos.PhotoItem
 import com.example.flickerexample.models.photos.PhotoSearchResults
 import com.example.flickerexample.models.photos.getPhotoUrl
@@ -119,12 +119,13 @@ abstract class ResultsAdapterHolder(itemView: View) : RecyclerView.ViewHolder(it
     val image = itemView.findViewById<ImageView>(R.id.image_flickr)
     val imageTitle = itemView.findViewById<TextView>(R.id.image_flickr_title)
 
+    var loading = false
+
     abstract fun bindPhotoPath(photo: PhotoItem)
 
     fun bind(photo : PhotoItem){
 
         bindPhotoPath(photo)
-
 
         imageTitle.text = photo.title
     }
@@ -134,24 +135,35 @@ abstract class ResultsAdapterHolder(itemView: View) : RecyclerView.ViewHolder(it
 
 class SearchResultsAdapterHolder(itemView: View) : ResultsAdapterHolder(itemView) {
     override fun bindPhotoPath(photo: PhotoItem) {
-        image.load(photo.getPhotoUrl())
+        loading = true
+        image.loadAnimate(photo.getPhotoUrl(), true) {
+            loading = false
+        }
     }
 }
 
 
 class SearchResultsAdapter(photos: List<PhotoItem>, imageClicked: (ImageView, PhotoItem) -> Unit) :
-    ResultsAdapter<SearchResultsAdapterHolder>(photos, imageClicked) {
+    ResultsAdapter<SearchResultsAdapterHolder>(photos.toMutableList(), imageClicked) {
     override fun createViewHolder(view: View) = SearchResultsAdapterHolder(view)
 }
 
 
 abstract class ResultsAdapter<T : ResultsAdapterHolder>(
-    val photos: List<PhotoItem>,
+    val photos: MutableList<PhotoItem>,
     val imageClicked: (ImageView, PhotoItem) -> Unit
 ) :
     RecyclerView.Adapter<ResultsAdapterHolder>() {
 
     abstract fun createViewHolder(view: View): T
+
+    fun removeItem(item: (PhotoItem) -> Boolean): Boolean {
+        return photos.indexOfFirst(item).takeIf { it > -1 }?.let { index ->
+            photos.removeAt(index)
+            notifyItemRemoved(index)
+            true
+        } ?: false
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ResultsAdapterHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.image_result_view_holder, parent, false)
@@ -162,6 +174,7 @@ abstract class ResultsAdapter<T : ResultsAdapterHolder>(
         val photo = photos[position]
         holder.bind(photo)
         holder.itemView.setOnClickListener {
+            if (holder.loading) return@setOnClickListener
             imageClicked(holder.image, photo)
         }
 
