@@ -16,12 +16,14 @@ import androidx.core.app.ActivityOptionsCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.flickerexample.R
 import com.example.flickerexample.core.extensions.load
-import com.example.flickerexample.models.photos.*
+import com.example.flickerexample.models.photos.PhotoItem
+import com.example.flickerexample.models.photos.PhotoSearchResults
+import com.example.flickerexample.models.photos.getPhotoUrl
+import com.example.flickerexample.models.photos.isSuccessful
 import com.example.flickerexample.network.PhotoRepository
 import com.example.flickerexample.ui.image.ImageFullScreenActivity
 import com.example.flickerexample.ui.search.BaseSearchActivity
 import com.example.flickerexample.ui.search.SearchViewModel
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_results.*
 import kotlinx.android.synthetic.main.loading.*
 
@@ -41,39 +43,45 @@ class ResultsActivity : BaseSearchActivity<ResultsViewModel>(ResultsViewModel::c
         search_text.onActionSearch(::trySearch)
 
         page_left.setOnClickListener {
-            PhotoRepository.lastResult.value?.photos?.takeIf { it.page > 1 && viewModel.isLoading.value != true }
-                ?.also {
-                    PhotoRepository.currentPage--
-                    trySearch()
-                }
+            viewModel.changePage(-1) {
+                trySearch()
+            }
         }
 
         page_right.setOnClickListener {
-            PhotoRepository.lastResult.value?.photos?.takeIf { it.page < it.pages && viewModel.isLoading.value != true }
-                ?.also {
-                    PhotoRepository.currentPage++
-                    trySearch()
-                }
+            viewModel.changePage(1) {
+                trySearch()
+            }
         }
 
-        PhotoRepository.lastResult.observe {
-            if (it?.isSuccessful != true || it.photos == null) {
-                Snackbar.make(rootView(), it?.message ?: "Unable to process", Snackbar.LENGTH_SHORT)
-                    .show();
-                return@observe
+
+        fun onSuccessResult(photos: PhotoSearchResults?) {
+            if (photos?.isSuccessful != true || photos.photos?.photo == null) {
+                snackBar(photos?.message ?: "Unable to process")
+                return
             }
 
-            recyclerView.adapter = ResultsAdapter(it.photos) { imageView, photoItem ->
+            recyclerView.adapter = SearchResultsAdapter(photos.photos.photo) { imageView, photoItem ->
                 ImageFullScreenActivity.startIntent(this, photoItem, imageView)
             }
 
-            search_text.text = it.searchTerm
+            search_text.text = photos.searchTerm
 
-            page_title.text = Html.fromHtml("Page <b>${it.photos.page}</b> of ${it.photos.pages}")
+            page_title.text = Html.fromHtml("Page <b>${photos.photos.page}</b> of ${photos.photos.pages}")
         }
+
+        onSuccessResult(PhotoRepository.lastResult.value)
 
         viewModel.photosFetchedAction.observe {
             showLoading(false)
+
+            it
+
+                .ifError {
+                    snackBar(it.localizedMessage)
+                }
+
+                .ifSuccess(::onSuccessResult)
         }
 
     }
@@ -102,30 +110,53 @@ class ResultsActivity : BaseSearchActivity<ResultsViewModel>(ResultsViewModel::c
     }
 }
 
-class ResultsAdapterHolder(itemView : View) : RecyclerView.ViewHolder(itemView){
+
+abstract class ResultsAdapterHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
     val image = itemView.findViewById<ImageView>(R.id.image_flickr)
     val imageTitle = itemView.findViewById<TextView>(R.id.image_flickr_title)
 
+    abstract fun bindPhotoPath(photo: PhotoItem)
+
     fun bind(photo : PhotoItem){
 
-        image.load(photo.getPhotoUrl())
+        bindPhotoPath(photo)
+
 
         imageTitle.text = photo.title
     }
 
 }
 
-class ResultsAdapter(val photos: Photos, val imageClicked: (ImageView, PhotoItem) -> Unit) :
+
+class SearchResultsAdapterHolder(itemView: View) : ResultsAdapterHolder(itemView) {
+    override fun bindPhotoPath(photo: PhotoItem) {
+        image.load(photo.getPhotoUrl())
+    }
+}
+
+
+class SearchResultsAdapter(photos: List<PhotoItem>, imageClicked: (ImageView, PhotoItem) -> Unit) :
+    ResultsAdapter<SearchResultsAdapterHolder>(photos, imageClicked) {
+    override fun createViewHolder(view: View) = SearchResultsAdapterHolder(view)
+}
+
+
+abstract class ResultsAdapter<T : ResultsAdapterHolder>(
+    val photos: List<PhotoItem>,
+    val imageClicked: (ImageView, PhotoItem) -> Unit
+) :
     RecyclerView.Adapter<ResultsAdapterHolder>() {
+
+    abstract fun createViewHolder(view: View): T
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ResultsAdapterHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.image_result_view_holder, parent, false)
-        return ResultsAdapterHolder(view)
+        return createViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ResultsAdapterHolder, position: Int) {
-        val photo = photos.photo[position]
+        val photo = photos[position]
         holder.bind(photo)
         holder.itemView.setOnClickListener {
             imageClicked(holder.image, photo)
@@ -133,10 +164,31 @@ class ResultsAdapter(val photos: Photos, val imageClicked: (ImageView, PhotoItem
 
     }
 
-    override fun getItemCount() = photos.photo.size
+    override fun getItemCount() = photos.size
 
 }
 
 class ResultsViewModel : SearchViewModel() {
+
+    fun changePage(pageAdd: Int, pageAllowed: () -> Unit) {
+
+        fun complete() {
+            PhotoRepository.currentPage += pageAdd
+            pageAllowed()
+        }
+
+        if (pageAdd == 0) return
+        else if (pageAdd < 0) {
+            PhotoRepository.lastResult.value?.photos?.takeIf { it.page > 1 && isLoading.value != true }
+                ?.also {
+                    complete()
+                }
+        } else {
+            PhotoRepository.lastResult.value?.photos?.takeIf { it.page < it.pages && isLoading.value != true }
+                ?.also {
+                    complete()
+                }
+        }
+    }
 
 }

@@ -16,6 +16,11 @@
                   android:windowSoftInputMode="stateHidden"
                   android:parentActivityName=".ui.results.ResultsActivity">
         </activity>
+        <activity android:name=".ui.bookmarks.BookmarkedActivity"
+                  android:label="Bookmarks"
+                  android:windowSoftInputMode="stateHidden"
+                  android:parentActivityName=".ui.search.SearchActivity">
+        </activity>
         <activity android:name=".ui.results.ResultsActivity"
                   android:windowSoftInputMode="stateHidden"
                   android:parentActivityName=".ui.search.SearchActivity">

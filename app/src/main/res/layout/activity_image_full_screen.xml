@@ -3,6 +3,7 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:background="@color/black"
+        android:id="@+id/image_root"
         android:layout_width="match_parent"
         android:layout_height="match_parent" xmlns:app="http://schemas.android.com/apk/res-auto"
         tools:context=".ui.image.ImageFullScreenActivity">
@@ -14,21 +15,23 @@
 
 
     <TextView android:id="@+id/author" android:layout_width="0dp" android:layout_height="wrap_content"
-              android:layout_marginTop="8dp"
+              android:paddingTop="8dp"
+              android:paddingEnd="8dp"
               style="@style/TextShadow"
+              android:singleLine="true"
               android:paddingStart="16dp"
               tools:text="Brad T"
+              android:background="@color/black_20"
               app:layout_constraintTop_toTopOf="parent" app:layout_constraintEnd_toStartOf="@+id/close"
-              android:layout_marginEnd="8dp" app:layout_constraintStart_toStartOf="parent"
-              android:layout_marginStart="8dp"/>
+              app:layout_constraintStart_toStartOf="parent"/>
 
     <androidx.appcompat.widget.AppCompatImageView android:layout_width="wrap_content"
                                                   android:layout_height="wrap_content"
                                                   android:id="@+id/close"
-                                                  android:layout_marginTop="8dp"
+                                                  android:paddingTop="8dp"
                                                   android:src="@drawable/ic_close_white_24dp"
                                                   app:layout_constraintEnd_toEndOf="parent"
-                                                  android:layout_marginEnd="8dp"
+                                                  android:paddingEnd="8dp"
                                                   app:layout_constraintTop_toTopOf="parent"/>
 
 
@@ -36,13 +39,22 @@
           android:background="@drawable/fade"
           app:layout_constraintBottom_toTopOf="@+id/image_flickr_title" android:id="@+id/view"/>
 
-    <TextView android:id="@+id/image_flickr_title" android:layout_width="match_parent" android:gravity="center"
-              android:layout_height="wrap_content" app:layout_constraintEnd_toEndOf="parent"
+    <TextView android:id="@+id/image_flickr_title" android:layout_width="0dp" android:gravity="center"
+              android:minHeight="48dp"
+              android:layout_height="wrap_content"
               android:paddingEnd="8dp" app:layout_constraintStart_toStartOf="parent"
-              android:paddingStart="8dp" android:paddingBottom="8dp"
+              android:paddingStart="8dp"
               style="@style/TextShadow.BG"
               tools:text="cool image"
-              app:layout_constraintBottom_toBottomOf="parent"/>
+              app:layout_constraintBottom_toBottomOf="parent"
+              app:layout_constraintEnd_toStartOf="@+id/bookmark"/>
 
+    <ImageView android:id="@+id/bookmark" app:layout_constraintEnd_toEndOf="parent"
+               android:scaleType="center"
+               android:background="@color/black_20"
+               app:layout_constraintBottom_toBottomOf="parent" android:layout_width="48dp" android:layout_height="48dp"
+               android:src="@drawable/ic_bookmark_border_black_24dp"/>
+
+    <include layout="@layout/loading"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

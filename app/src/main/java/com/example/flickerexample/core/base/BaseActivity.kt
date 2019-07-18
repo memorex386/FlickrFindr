@@ -1,12 +1,11 @@
 package com.example.flickerexample.core.base
 
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 
-abstract class BaseActivity : AppCompatActivity(), LifecycleOwner{
+abstract class BaseActivity : AppCompatActivity() {
 
 }
 
@@ -14,7 +13,7 @@ abstract class BaseViewModelActivity<T : BaseViewModel>(private val _viewModelTy
 
     val viewModel : T by lazy { ViewModelProviders.of(this).get(_viewModelType) }
 
-    fun LiveDataAction.observe(observer: () -> Unit) = observe(this@BaseViewModelActivity, observer)
+    fun <T> BaseLiveDataAction<T>.observe(observer: (T) -> Unit) = observe(this@BaseViewModelActivity, observer)
 
     fun <T> LiveData<T>.singleObserve(observer: (T?) -> Unit) {
         removeObservers(this@BaseViewModelActivity)

@@ -17,6 +17,7 @@ var <T> MutableLiveData<T>.post: T?
         postValue(value)
     }
 
+
 open class MutableLiveDataNotNull<T>(_value: T) : MutableLiveData<T>() {
 
     init {
@@ -27,6 +28,11 @@ open class MutableLiveDataNotNull<T>(_value: T) : MutableLiveData<T>() {
         return super.getValue()!!
     }
 
+    var post: T
+        get() = value
+        set(value) {
+            postValue(value)
+        }
 }
 
 fun <T> T.liveDataNotNull() = MutableLiveDataNotNull<T>(this)

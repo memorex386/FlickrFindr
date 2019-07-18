@@ -1,7 +1,6 @@
 package com.example.flickerexample.network
 
 import android.util.Log
-import java.io.IOException
 
 abstract class BaseRepository{
 
@@ -14,7 +13,7 @@ abstract class BaseRepository{
             is Result.Success ->
                 data = result.data
             is Result.Error -> {
-                Log.d("1.DataRepository", "$errorMessage & Exception - ${result.exception}")
+                Log.d("err", "$errorMessage & Exception - ${result.exception}")
             }
         }
 
@@ -24,10 +23,16 @@ abstract class BaseRepository{
     }
 
 
-    private suspend fun <T: Any> safeApiResult(call: suspend ()-> retrofit2.Response<T>, errorMessage: String) : Result<T>{
-        val response = call.invoke()
-        if(response.isSuccessful) return Result.Success(response.body()!!)
+    suspend fun <T : Any> safeApiResult(call: suspend () -> retrofit2.Response<T>, errorMessage: String): Result<T> {
+        try {
+            val response = call.invoke()
+            if (response.isSuccessful) return Result.Success(response.body()!!)
 
-        return Result.Error(IOException("Error Occurred during getting safe Api result, Custom ERROR - $errorMessage"))
+            return Result.Error(Exception(response.errorBody()?.string() ?: errorMessage))
+        } catch (e: Exception) {
+            return Result.Error(e)
+        }
+
     }
 }
+

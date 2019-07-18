@@ -16,41 +16,40 @@ object PhotoRepository : BaseRepository() {
 
     var currentPage = 1
 
-    suspend fun getPhotoInfo(photo: PhotoItem): PhotoInfoResponse? {
-        val photosResponse = safeApiCall(
+    suspend fun getPhotoInfo(photo: PhotoItem): Result<PhotoInfoResponse> {
+        return safeApiResult(
             call = { NetworkFactory.flickrApi.getPhotoInfo(photo.id, photo.secret).await() },
             errorMessage = "Error Fetching Photo Info"
         )
-
-        return photosResponse
     }
 
     suspend fun getPhotos(
         searchString: String
-    ): PhotoSearchResults? {
-
+    ): Result<PhotoSearchResults> {
         if (lastResult.value?.searchTerm != searchString) {
             currentPage = 1
         }
-
-        val photosResponse = safeApiCall(
+        
+        val photosResponse = safeApiResult(
             call = {
                 NetworkFactory.flickrApi.getPhotosFromSearch(searchString, sortItem.value.sortText, currentPage).await()
             },
             errorMessage = "Error Fetching Photos"
         )
 
-        flickerDB.searchQueryDao().insert(SearchQuery(searchString))
+        photosResponse.ifSuccess {
+            flickerDB.searchQueryDao().insert(SearchQuery(searchString))
 
-        photosResponse?.apply {
-            photos?.page?.also { currentPage = it }
-            searchTerm = searchString
-            photos?.apply {
+            it.apply {
+                photos?.page?.also { currentPage = it }
                 searchTerm = searchString
+                photos?.apply {
+                    searchTerm = searchString
+                }
             }
-        }
 
-        lastResult.postValue(photosResponse)
+            lastResult.postValue(it)
+        }
 
         return photosResponse
     }

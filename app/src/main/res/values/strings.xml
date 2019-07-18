@@ -3,4 +3,10 @@
     <string name="invalid_search">Please enter a valid search query</string>
     <string name="recent_searches">Recent Searches</string>
     <string name="search">Search</string>
+    <string name="bookmark">Bookmark</string>
+    <string name="bookmarks">Bookmarks</string>
+    <string name="complete_a_search_and_add_a_bookmark_to_see_them_here">Complete a search and add a bookmark to see
+        them here!
+    </string>
+    <string name="error_encountered">Error encountered</string>
 </resources>

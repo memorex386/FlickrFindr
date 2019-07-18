@@ -4,23 +4,23 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AlphaAnimation
-import android.view.animation.Animation
-import android.view.animation.DecelerateInterpolator
 import android.widget.TextView
-import androidx.core.view.isVisible
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.RecyclerView
 import com.example.flickerexample.R
 import com.example.flickerexample.core.base.BaseViewModel
 import com.example.flickerexample.core.base.BaseViewModelActivity
-import com.example.flickerexample.core.base.LiveDataAction
+import com.example.flickerexample.core.base.ResultLiveDataAction
 import com.example.flickerexample.core.extensions.addStart
+import com.example.flickerexample.core.extensions.animateFade
 import com.example.flickerexample.core.extensions.post
+import com.example.flickerexample.models.photos.PhotoSearchResults
 import com.example.flickerexample.models.photos.SearchQuery
 import com.example.flickerexample.models.photos.isSuccessful
 import com.example.flickerexample.network.PhotoRepository
+import com.example.flickerexample.network.Result
 import com.example.flickerexample.room.flickerDB
+import com.example.flickerexample.ui.bookmarks.BookmarkedActivity
 import com.example.flickerexample.ui.results.ResultsActivity
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_search.*
@@ -43,16 +43,28 @@ class SearchActivity : BaseSearchActivity<SearchViewModel>(SearchViewModel::clas
         viewModel.photosFetchedAction.observe {
             showLoading(false)
 
-            val result = PhotoRepository.lastResult.value
-            if (result?.isSuccessful != true || result.photos == null) {
-                Snackbar.make(search_root, result?.message ?: "Unable to process", Snackbar.LENGTH_SHORT)
-                    .show();
-                return@observe
-            }
+            it
 
-            ResultsActivity.startIntent(this, result, edit_query)
+                .ifError {
+                    snackBar(it.localizedMessage)
+                }
+
+                .ifSuccess {
+                    val result = PhotoRepository.lastResult.value
+                    if (result?.isSuccessful != true || result.photos == null) {
+                        snackBar(result?.message ?: "Unable to process")
+                        return@observe
+                    }
+
+                    ResultsActivity.startIntent(this, result, edit_query)
+                }
+
+
         }
 
+        bookmark_button.setOnClickListener {
+            startActivity(BookmarkedActivity.getIntent(this))
+        }
 
         lifecycle.addStart {
 
@@ -88,6 +100,9 @@ class SearchActivity : BaseSearchActivity<SearchViewModel>(SearchViewModel::clas
 abstract class BaseSearchActivity<T : SearchViewModel>(_viewModelType: Class<T>) :
     BaseViewModelActivity<T>(_viewModelType) {
 
+    fun snackBar(err: String) = Snackbar.make(rootView(), err, Snackbar.LENGTH_SHORT)
+        .show();
+
     fun trySearch(searchString: String = PhotoRepository.lastResult.value?.searchTerm ?: "") {
         if (searchString.isBlank()) {
             Snackbar.make(rootView(), getString(R.string.invalid_search), Snackbar.LENGTH_SHORT)
@@ -101,25 +116,7 @@ abstract class BaseSearchActivity<T : SearchViewModel>(_viewModelType: Class<T>)
         viewModel.fetchPhotos(searchString)
     }
 
-    fun showLoading(show: Boolean) {
-        AlphaAnimation(if (show) 0f else 1f, if (show) 1f else 0f).apply {
-            interpolator = DecelerateInterpolator()
-            duration = 300L
-            setAnimationListener(object : Animation.AnimationListener {
-                override fun onAnimationStart(animation: Animation) {
-                    if (show) loading()?.isVisible = show
-                }
-
-                override fun onAnimationEnd(animation: Animation) {
-                    loading()?.isVisible = show
-                }
-
-                override fun onAnimationRepeat(animation: Animation) {}
-            })
-            loading()?.startAnimation(this)
-        }
-
-    }
+    fun showLoading(show: Boolean) = loading()?.animateFade(show)
 
     abstract fun rootView(): View
     abstract fun loading(): View?
@@ -163,7 +160,7 @@ open class SearchViewModel : BaseViewModel() {
 
     val searchQueries = MutableLiveData<List<SearchQuery>>()
 
-    val photosFetchedAction = LiveDataAction()
+    val photosFetchedAction = ResultLiveDataAction<Result<PhotoSearchResults>>()
 
     val isLoading = MutableLiveData<Boolean>()
 
@@ -199,9 +196,9 @@ open class SearchViewModel : BaseViewModel() {
     fun fetchPhotos(searchString: String) {
         isLoading.value = true
         scope.launch {
-            PhotoRepository.getPhotos(searchString)
+            val result = PhotoRepository.getPhotos(searchString)
             asyncSearchQueries()
-            photosFetchedAction.postTrigger()
+            photosFetchedAction.postTrigger(result)
             isLoading.post = false
         }
     }
