@@ -41,5 +41,8 @@ Please check out my other sample app at [https://github.com/memorex386/github_ex
 * RxJava
 * Fragments
 * ViewPagers
+* Dagger 2
+* Data Binding
+* Custom observable for LiveData, Data Binding, and RxJava
 
 Thanks for your time and for reviewing my application!
